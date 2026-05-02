@@ -1,11 +1,5 @@
-data "aws_caller_identity" "current" {}
-
 locals {
   metric_models_bucket_name = "metric-models"
-  github_oidc_subjects      = ["${var.github_org}/${var.github_repo}:*"]
-  github_actions_policies = {
-    for i, arn in var.github_actions_managed_policy_arns : "managed-${i}" => arn
-  }
 }
 
 module "metric_models_bucket" {
@@ -13,7 +7,7 @@ module "metric_models_bucket" {
   version = "4.0"
 
   bucket = local.metric_models_bucket_name
-  
+
   server_side_encryption_configuration = {
     rule = [
       {
@@ -30,14 +24,15 @@ module "github_oidc_provider" {
   version = "5.52"
 }
 
-module "github_actions" {
+module "github_metric_models" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-github-oidc-role"
   version = "5.52"
 
-  name     = "${var.project_name}-github-actions"
-  subjects = local.github_oidc_subjects
-
-  policies = local.github_actions_policies
+  name     = "github-metric-models"
+  subjects = [
+    "square-intelligence/metric-models"
+  ]
+  policies = {}
 
   depends_on = [module.github_oidc_provider]
 }
@@ -64,6 +59,6 @@ data "aws_iam_policy_document" "metric_models_s3" {
 
 resource "aws_iam_role_policy" "metric_models_s3" {
   name   = "metric-models-s3"
-  role   = module.github_actions.name
+  role   = module.github_metric_models.name
   policy = data.aws_iam_policy_document.metric_models_s3.json
 }

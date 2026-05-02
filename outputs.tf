@@ -6,7 +6,7 @@ output "metric_models_bucket_arn" {
   value = module.metric_models_bucket.s3_bucket_arn
 }
 
-output "github_actions_role_arn" {
-  value       = module.github_actions.arn
-  description = "Assume role ARN for GitHub Actions OIDC (configure-aws-credentials)."
+output "github_metric_models_role_arn" {
+  value       = module.github_metric_models.arn
+  description = "S3-only OIDC role for metric-models bucket (not for running Terraform)."
 }
