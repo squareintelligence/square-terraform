@@ -14,5 +14,6 @@ terraform {
 }
 
 provider "aws" {
-  region = "eu-west-2"
+  region      = "us-east-1"
+  max_retries = 8
 }
