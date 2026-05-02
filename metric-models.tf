@@ -1,0 +1,69 @@
+data "aws_caller_identity" "current" {}
+
+locals {
+  metric_models_bucket_name = "metric-models"
+  github_oidc_subjects      = ["${var.github_org}/${var.github_repo}:*"]
+  github_actions_policies = {
+    for i, arn in var.github_actions_managed_policy_arns : "managed-${i}" => arn
+  }
+}
+
+module "metric_models_bucket" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "4.0"
+
+  bucket = local.metric_models_bucket_name
+  
+  server_side_encryption_configuration = {
+    rule = [
+      {
+        apply_server_side_encryption_by_default = {
+          sse_algorithm = "AES256"
+        }
+      },
+    ]
+  }
+}
+
+module "github_oidc_provider" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-github-oidc-provider"
+  version = "5.52"
+}
+
+module "github_actions" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-github-oidc-role"
+  version = "5.52"
+
+  name     = "${var.project_name}-github-actions"
+  subjects = local.github_oidc_subjects
+
+  policies = local.github_actions_policies
+
+  depends_on = [module.github_oidc_provider]
+}
+
+data "aws_iam_policy_document" "metric_models_s3" {
+  statement {
+    sid       = "ListBucket"
+    effect    = "Allow"
+    actions   = ["s3:ListBucket"]
+    resources = [module.metric_models_bucket.s3_bucket_arn]
+  }
+
+  statement {
+    sid    = "ObjectRW"
+    effect = "Allow"
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:HeadObject",
+    ]
+    resources = ["${module.metric_models_bucket.s3_bucket_arn}/*"]
+  }
+}
+
+resource "aws_iam_role_policy" "metric_models_s3" {
+  name   = "metric-models-s3"
+  role   = module.github_actions.name
+  policy = data.aws_iam_policy_document.metric_models_s3.json
+}
