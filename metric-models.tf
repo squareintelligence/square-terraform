@@ -19,11 +19,6 @@ module "metric_models_bucket" {
   }
 }
 
-module "github_oidc_provider" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-github-oidc-provider"
-  version = "5.52"
-}
-
 module "github_metric_models" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-github-oidc-role"
   version = "5.52"
@@ -33,8 +28,6 @@ module "github_metric_models" {
     "square-intelligence/metric-models"
   ]
   policies = {}
-
-  depends_on = [module.github_oidc_provider]
 }
 
 data "aws_iam_policy_document" "metric_models_s3" {
