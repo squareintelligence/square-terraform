@@ -1,5 +1,7 @@
+data "aws_caller_identity" "current" {}
+
 locals {
-  metric_models_bucket_name = "metric-models"
+  metric_models_bucket_name = "square-intelligence-metric-models"
 }
 
 module "metric_models_bucket" {
