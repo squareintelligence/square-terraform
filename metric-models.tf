@@ -27,7 +27,7 @@ module "github_metric_models" {
 
   name = "github-metric-models"
   subjects = [
-    "squareintelligence/metric-models"
+    "squareintelligence/metric-models:*",
   ]
   policies = {}
 }
