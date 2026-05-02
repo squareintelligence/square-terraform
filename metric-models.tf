@@ -28,7 +28,7 @@ module "github_metric_models" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-github-oidc-role"
   version = "5.52"
 
-  name     = "github-metric-models"
+  name = "github-metric-models"
   subjects = [
     "square-intelligence/metric-models"
   ]
